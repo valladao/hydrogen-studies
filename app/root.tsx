@@ -11,6 +11,15 @@ import favicon from '../public/favicon.svg';
 import {Layout} from './components/Layout';
 
 import {Seo} from '@shopify/hydrogen';
+import {ShopifyProvider} from '@shopify/hydrogen-react';
+
+const shopifyConfig = {
+  storefrontToken: 'c5f3837aa793931609cd1bdf16240c78',
+  storeDomain: 'hydrogen-studies.myshopify.com',
+  storefrontApiVersion: '2023-01',
+  countryIsoCode: 'US',
+  languageIsoCode: 'en',
+};
 
 export const links = () => {
   return [
@@ -39,25 +48,25 @@ export async function loader({context}) {
 
 export default function App() {
   const data = useLoaderData();
-
-  const {name} = data.layout.shop;
+  const {name, description} = data.layout.shop;
 
   return (
-    <html lang="en">
-      <head>
-        <Seo />
-        <Meta />
-        <Links />
-      </head>
-      <body>
-        <Layout title={name}>
-          <Outlet />
-        </Layout>
-        <ScrollRestoration />
-        <Scripts />
-      </body>
-    </html>
-
+    <ShopifyProvider {...shopifyConfig}>
+      <html lang="en">
+        <head>
+          <Seo />
+          <Meta />
+          <Links />
+        </head>
+        <body>
+          <Layout title={name}>
+            <Outlet />
+          </Layout>
+          <ScrollRestoration />
+          <Scripts />
+        </body>
+      </html>
+    </ShopifyProvider>
   );
 }
 
