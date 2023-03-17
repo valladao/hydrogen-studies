@@ -1,4 +1,4 @@
-import {useLoaderData} from '@remix-run/react';
+import {useMatches, useFetcher, useLoaderData} from '@remix-run/react';
 import {json} from 'react-router';
 import {MediaFile, Money, ShopPayButton} from '@shopify/hydrogen-react';
 
@@ -33,6 +33,29 @@ export const loader = async ({params, context, request}) => {
     product,
     selectedVariant,
   });
+}
+
+function ProductForm({variantId}) {
+  const [root] = useMatches();
+  const selectedLocale = root?.data?.selectedLocale;
+  const fetcher = useFetcher();
+
+  const lines = [{merchandiseId: variantId, quantity: 1}];
+
+  return (
+    <fetcher.Form action="/cart" method="post">
+      <input type="hidden" name="cartAction" value={'ADD_TO_CART'} />
+      <input
+        type="hidden"
+        name="countryCode"
+        value={selectedLocale?.country ?? 'US'}
+      />
+      <input type="hidden" name="lines" value={JSON.stringify(lines)} />
+      <button className="bg-black text-white px-6 py-3 w-full rounded-md text-center font-medium max-w-[400px]">
+        Add to Bag
+      </button>
+    </fetcher.Form>
+  );
 }
 
 function ProductGallery({media}) {
@@ -128,7 +151,9 @@ export default function ProductHandle() {
                 variantIds={[selectedVariant?.id]}
                 width={'400px'}
               />
-              {/* TODO product form */}
+              <div className="space-y-2">
+                <ProductForm variantId={selectedVariant?.id} />
+              </div>
             </div>
           )}
           <div
