@@ -13,6 +13,9 @@ import {Layout} from './components/Layout';
 import {Seo} from '@shopify/hydrogen';
 import {ShopifyProvider} from '@shopify/hydrogen-react';
 
+import {defer} from '@shopify/remix-oxygen';
+import {CART_QUERY} from '~/queries/cart';
+
 const shopifyConfig = {
   storefrontToken: 'c5f3837aa793931609cd1bdf16240c78',
   storeDomain: 'hydrogen-studies.myshopify.com',
@@ -41,9 +44,30 @@ export const meta = () => ({
   viewport: 'width=device-width,initial-scale=1',
 });
 
-export async function loader({context}) {
+async function getCart({storefront}, cartId) {
+  if (!storefront) {
+    throw new Error('missing storefront client in cart query');
+  }
+
+  const {cart} = await storefront.query(CART_QUERY, {
+    variables: {
+      cartId,
+      country: storefront.i18n.country,
+      language: storefront.i18n.language,
+    },
+    cache: storefront.CacheNone(),
+  });
+
+  return cart;
+}
+
+export async function loader({context, request}) {
+  const cartId = await context.session.get('cartId');
   const layout = await context.storefront.query(LAYOUT_QUERY);
-  return {layout};
+  return defer({
+    cart: cartId ? getCart(context, cartId) : undefined,
+    layout: await context.storefront.query(LAYOUT_QUERY),
+  });
 }
 
 export default function App() {
